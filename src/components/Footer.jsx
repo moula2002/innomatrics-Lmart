@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import logo from '../assets/newadd.png'
+import logo from '../assets/printo.png'
 
 const Footer = () => {
   return (
@@ -46,10 +46,10 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li><Link to="/" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Home</Link></li>
-              <li><Link to="/printing" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Printing</Link></li>
-              <li><Link to="/e-market" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">L-Market</Link></li>
-              <li><Link to="/local-market" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Local Market</Link></li>
-              <li><Link to="/news-today" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">News</Link></li>
+              <li><Link to="/printing" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">E-Store</Link></li>
+              <li><Link to="/e-market" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Local Market</Link></li>
+              <li><Link to="/local-market" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Printing</Link></li>
+              <li><Link to="/news-today" className="text-gray-400 hover:text-white transition hover:translate-x-1 inline-block">Market News</Link></li>
             </ul>
           </div>
 

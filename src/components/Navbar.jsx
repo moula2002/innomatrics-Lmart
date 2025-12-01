@@ -418,7 +418,7 @@ const Navbar = () => {
                   location.pathname === "/e-market" ? "active-nav-item" : ""
                 }`}
               >
-                E-Market
+                E-Store
                 {location.pathname === "/e-market" && (
                   <span className="absolute bottom-[-8px] left-0 w-full h-[3px] bg-purple-500 rounded-full"></span>
                 )}
@@ -451,7 +451,7 @@ const Navbar = () => {
                   location.pathname === "/news-today" ? "active-nav-item" : ""
                 }`}
               >
-                NEWS TODAY
+                Market News 
                 {location.pathname === "/news-today" && (
                   <span className="absolute bottom-[-8px] left-0 w-full h-[3px] bg-purple-500 rounded-full"></span>
                 )}
