@@ -142,7 +142,7 @@ const Navbar = () => {
               <img
                 src={logo}
                 alt="E-Mart Logo"
-               className="w-32 h-24 sm:w-52 sm:h-20 object-contain transition-all duration-300 hover:brightness-110 hover:drop-shadow-lg cursor-pointer"
+              className="w-14 h-14 sm:w-52 sm:h-20 object-contain transition-all duration-300 hover:brightness-110 hover:drop-shadow-lg cursor-pointer"
                 onClick={() => navigate("/")}
               />
             </div>

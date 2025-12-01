@@ -31,10 +31,27 @@ const Home = () => {
         querySnapshot.forEach((doc) => {
           const productData = doc.data();
           if (productData && productData.name) {
+            // Handle variants if they exist
+            let price = 0;
+            let offerPrice = 0;
+            
+            if (productData.variants && Array.isArray(productData.variants) && productData.variants.length > 0) {
+              // Use the first variant's pricing
+              const firstVariant = productData.variants[0];
+              price = Number(firstVariant.price) || 0;
+              offerPrice = Number(firstVariant.offerPrice) || price;
+            } else if (productData.price || productData.offerPrice) {
+              // Use direct product pricing
+              price = Number(productData.price) || 0;
+              offerPrice = Number(productData.offerPrice) || price;
+            }
+            
             fetchedProducts.push({
               ...productData,
               id: doc.id,
-              price: Number(productData.price) || 0,
+              price: price,
+              offerPrice: offerPrice,
+              originalPrice: price > offerPrice ? price : null,
               image: productData.image || productData.imageUrl || 
                      (Array.isArray(productData.imageUrls) && productData.imageUrls.length > 0 ? 
                       productData.imageUrls[0].url : 'https://placehold.co/400x300?text=No+Image')
@@ -154,9 +171,16 @@ const Home = () => {
                     />
                     <div className="p-1 sm:p-2 lg:p-3">
                       <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 truncate">{product.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">
-                        {typeof product.category === 'string' ? product.category : product.category?.name || 'Uncategorized'}
-                      </p>
+                      <div className="flex items-center mt-1">
+                        {product.offerPrice < product.price ? (
+                          <>
+                            <span className="text-xs sm:text-sm font-bold text-red-600">₹{product.offerPrice}</span>
+                            <span className="text-xs text-gray-500 line-through ml-1">₹{product.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-xs sm:text-sm font-bold text-gray-800">₹{product.price}</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 )) : (
@@ -183,9 +207,16 @@ const Home = () => {
                     />
                     <div className="p-1 sm:p-2 lg:p-3">
                       <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 truncate">{product.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">
-                        {typeof product.category === 'string' ? product.category : product.category?.name || 'Uncategorized'}
-                      </p>
+                      <div className="flex items-center mt-1">
+                        {product.offerPrice < product.price ? (
+                          <>
+                            <span className="text-xs sm:text-sm font-bold text-red-600">₹{product.offerPrice}</span>
+                            <span className="text-xs text-gray-500 line-through ml-1">₹{product.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-xs sm:text-sm font-bold text-gray-800">₹{product.price}</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -463,9 +494,9 @@ const Home = () => {
                     }}
                   />
                   {/* Discount Badge */}
-                  {product.discount && (
+                  {product.offerPrice < product.price && (
                     <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                      -{product.discount}%
+                      Save ₹{product.price - product.offerPrice}
                     </div>
                   )}
                   {/* Heart Icon */}
@@ -481,9 +512,6 @@ const Home = () => {
                   <h3 className="font-semibold text-gray-900 mb-1 text-xs sm:text-sm truncate">
                     {product.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-2 hidden sm:block">
-                    {product.description || 'No description available'}
-                  </p>
                   
                   {/* Rating */}
                   <div className="flex items-center mb-2">
@@ -500,9 +528,9 @@ const Home = () => {
                   {/* Price */}
                   <div className="flex items-center justify-between mb-2 sm:mb-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-1">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900">₹{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
+                      <span className="text-sm sm:text-lg font-bold text-gray-900">₹{product.offerPrice}</span>
+                      {product.offerPrice < product.price && (
+                        <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.price}</span>
                       )}
                     </div>
                   </div>
@@ -564,9 +592,9 @@ const Home = () => {
                     }}
                   />
                   {/* Discount Badge */}
-                  {product.discount && (
+                  {product.offerPrice < product.price && (
                     <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
-                      -{product.discount}%
+                      Save ₹{product.price - product.offerPrice}
                     </div>
                   )}
                   {/* Heart Icon */}
@@ -582,9 +610,6 @@ const Home = () => {
                   <h3 className="font-semibold text-gray-900 mb-1 text-xs sm:text-sm truncate">
                     {product.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-2 hidden sm:block">
-                    {product.description || 'No description available'}
-                  </p>
                   
                   {/* Rating */}
                   <div className="flex items-center mb-2 hidden sm:flex">
@@ -601,9 +626,9 @@ const Home = () => {
                   {/* Price */}
                   <div className="flex items-center justify-between mb-2 sm:mb-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-1">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900">₹{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
+                      <span className="text-sm sm:text-lg font-bold text-gray-900">₹{product.offerPrice}</span>
+                      {product.offerPrice < product.price && (
+                        <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.price}</span>
                       )}
                     </div>
                   </div>
