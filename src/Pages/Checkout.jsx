@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-// 🆕 Firebase/Firestore Imports
 import { db } from '../../firebase'; // 
 import { collection, addDoc } from "firebase/firestore";
-// ❌ FIXED: Removed the erroneous import "maps_tool_import"
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -149,20 +147,14 @@ const Checkout = () => {
     setCurrentStep(2);
     setErrors({ form: "", customization: "", payment: "" });
   };
-
-  // Cancel Order → Go Home + clear session selected items
   const handleCancel = () => {
     sessionStorage.removeItem("selectedCartItems");
     navigate("/");
   };
-
-  // Back to Customization
   const backToCustomization = () => {
     setCurrentStep(1);
     setErrors({ form: "", customization: "", payment: "" });
   };
-
-  // ℹ️ Invoice download logic (kept for reference, should be moved to OrderSuccess.jsx)
   const downloadInvoice = (invoiceData) => {
     const customizationText = invoiceData.items.map(item => {
       let customText = "";
@@ -199,10 +191,6 @@ const Checkout = () => {
     a.download = `invoice_${invoiceData.orderId}.txt`;
     a.click();
   };
-  
-  // ❌ REMOVED: reverseGeocode function is removed since the maps tool import failed.
-
-  // 🆕 Handle Live Location Click - MODIFIED TO STORE LAT/LNG SEPARATELY IN STATE
   const handleLiveLocation = () => {
     if (!navigator.geolocation) {
       setErrors(prev => ({ ...prev, form: "Geolocation is not supported by your browser." }));
@@ -216,18 +204,14 @@ const Checkout = () => {
       const { latitude, longitude } = position.coords;
       
       setFetchingLocation(false);
-
-      // ⚠️ IMPORTANT NOTE: Reverse Geocoding (Lat/Lng -> Readable Address) requires a third-party API like Google Maps API.
-      // Since we don't have that API key, we pre-fill the coordinates and inform the user.
       alert(`Successfully captured Coordinates: Latitude ${latitude}, Longitude ${longitude}. Please review the pre-filled fields.\n\nNOTE: To convert coordinates to a readable street address (reverse geocoding), you must integrate a service like Google Maps Geocoding API or a custom backend service.`);
 
       // Pre-fill fields with coordinates/placeholders
       setForm(prevForm => ({
         ...prevForm,
         address: `Coordinates: LAT ${latitude.toFixed(6)}, LNG ${longitude.toFixed(6)}`,
-        city: 'Location Fetched', // Placeholder for city
-        pincode: '000000', // Placeholder for pincode
-        // 🆕 Store latitude and longitude in dedicated state fields
+        city: 'Location Fetched', 
+        pincode: '000000', 
         latitude: latitude,
         longitude: longitude
       }));
@@ -257,27 +241,16 @@ const Checkout = () => {
         return false;
     }
   };
-  // 🔚 END NEW FUNCTION
-
-  // Create Razorpay Order (Backend API call simulation)
   const createRazorpayOrder = async (amount) => {
-    // In a real application, this would be a call to your backend
-    // Simulated response
     return {
       id: `order_${Date.now()}`,
       currency: "INR",
-      amount: amount * 100, // Convert to paise
-      // In production, these should come from your backend
+      amount: amount * 100,
     };
   };
-
-  // Verify Payment (Backend API call simulation)
   const verifyPayment = async (razorpayPaymentId, razorpayOrderId, razorpaySignature) => {
-    // Simulated successful verification
     return { success: true };
   };
-
-  // Initialize Razorpay Payment
   const initializeRazorpayPayment = async () => {
     if (!window.Razorpay) {
       setErrors(prev => ({ ...prev, payment: "Payment gateway not loaded. Please refresh the page." }));
@@ -285,23 +258,18 @@ const Checkout = () => {
     }
 
     try {
-      // Create order on your backend (simulated)
       const order = await createRazorpayOrder(total);
       
       const options = {
-        key: "rzp_test_RD3J1sajzD89a8", // Fixed: Hardcoded public key
-        amount: order.amount, // Amount in paise
+        key: "rzp_test_RD3J1sajzD89a8", 
+        amount: order.amount, 
         currency: order.currency,
         name: "Your Store Name",
         description: "Order Payment",
-        // ❌ FIX APPLIED: Removed order_id to fix 400 Bad Request in demo mode
-        // order_id: order.id, 
         handler: async function (response) {
-          // Handle successful payment
           setProcessingPayment(true);
           
           try {
-            // Verify payment on your backend
             const verificationResult = await verifyPayment(
               response.razorpay_payment_id,
               response.razorpay_order_id,
@@ -309,7 +277,6 @@ const Checkout = () => {
             );
 
             if (verificationResult.success) {
-              // Payment successful
               const orderData = {
                 paymentId: response.razorpay_payment_id,
                 orderId: `ORD-${Date.now()}`,
@@ -320,26 +287,18 @@ const Checkout = () => {
                 paymentMethod: "razorpay",
                 status: "confirmed",
                 createdAt: new Date().toISOString(),
-                // 🆕 ADDED: Include latitude and longitude in orderData
                 latitude: form.latitude,
                 longitude: form.longitude
               };
-
-              // 🆕 SAVE TO FIREBASE
               const saved = await saveOrderToFirebase(orderData);
               if (!saved) {
                   setProcessingPayment(false);
                   return; 
               }
-              // 🔚 END FIREBASE SAVE
-
-              // Store in sessionStorage for OrderSuccess component
               sessionStorage.setItem("orderSuccessData", JSON.stringify(orderData));
 
               clearCart();
               sessionStorage.removeItem("selectedCartItems");
-              
-              // Navigate to success page
               navigate("/order-success");
             } else {
               setErrors(prev => ({ ...prev, payment: "Payment verification failed. Please try again." }));
@@ -380,8 +339,6 @@ const Checkout = () => {
       return false;
     }
   };
-
-  // Handle different payment methods
   const handlePayment = async () => {
     if (processingPayment) return;
 
@@ -401,10 +358,8 @@ const Checkout = () => {
 
     try {
       if (paymentMethod === "razorpay") {
-        // Handle Razorpay payment
         await initializeRazorpayPayment();
       } else if (paymentMethod === "cod") {
-        // Handle Cash on Delivery
         const orderData = {
           paymentId: `COD-${Date.now()}`,
           orderId: `ORD-${Date.now()}`,
@@ -414,7 +369,6 @@ const Checkout = () => {
           paymentMethod: "cod",
           status: "pending", // COD starts as pending
           createdAt: new Date().toISOString(),
-          // 🆕 ADDED: Include latitude and longitude in orderData
           latitude: form.latitude,
           longitude: form.longitude
         };
@@ -425,20 +379,14 @@ const Checkout = () => {
             setProcessingPayment(false);
             return;
         }
-        // 🔚 END FIREBASE SAVE
-
-        // Store in sessionStorage for OrderSuccess component
         sessionStorage.setItem("orderSuccessData", JSON.stringify(orderData));
 
         alert("Order Placed Successfully! (Cash on Delivery)");
         
         clearCart();
         sessionStorage.removeItem("selectedCartItems");
-        
-        // Navigate to success page
         navigate("/order-success");
       } else {
-        // Handle other payment methods (UPI, Card, Net Banking through Razorpay)
         await initializeRazorpayPayment();
       }
       
@@ -446,7 +394,6 @@ const Checkout = () => {
       console.error("Payment error:", error);
       setErrors(prev => ({ ...prev, payment: "Payment failed. Please try again." }));
     } finally {
-      // Note: For Razorpay, we don't set processing to false here as it's handled in the modal callbacks
       if (paymentMethod === "cod") {
         setProcessingPayment(false);
       }
@@ -456,8 +403,6 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-6">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
-
-        {/* STEP INDICATOR */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center">
             <div className={`flex flex-col items-center ${currentStep >= 1 ? 'text-purple-600' : 'text-gray-400'}`}>
@@ -475,13 +420,9 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-
-        {/* PAGE TITLE */}
         <h2 className="text-2xl font-bold text-center mb-6">
           {currentStep === 1 ? "Customize Your Order" : "Payment Details"}
         </h2>
-
-        {/* ERROR MESSAGES */}
         {errors.customization && (
           <div className="mb-4 text-red-600 font-semibold text-center p-3 bg-red-50 rounded-lg">
             {errors.customization}
@@ -497,8 +438,6 @@ const Checkout = () => {
             {errors.payment}
           </div>
         )}
-
-        {/* STEP 1: CUSTOMIZATION */}
         {currentStep === 1 && (
           <div>
             <h3 className="text-xl font-semibold mb-4">Customize Your Items</h3>
@@ -520,10 +459,7 @@ const Checkout = () => {
                       </p>
                     </div>
                   </div>
-
-                  {/* CUSTOMIZATION OPTIONS */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* COLOR SELECTION */}
                     {item.colors && item.colors.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -543,8 +479,6 @@ const Checkout = () => {
                         </select>
                       </div>
                     )}
-
-                    {/* SIZE SELECTION */}
                     {item.sizes && item.sizes.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -564,8 +498,6 @@ const Checkout = () => {
                         </select>
                       </div>
                     )}
-
-                    {/* RAM SELECTION */}
                     {item.rams && item.rams.length > 0 && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -586,8 +518,6 @@ const Checkout = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* SELECTED CUSTOMIZATION DISPLAY */}
                   {(item.selectedColor || item.selectedSize || item.selectedRam) && (
                     <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                       <p className="text-sm font-medium text-blue-800">
@@ -603,8 +533,6 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-
-            {/* PROCEED TO PAYMENT BUTTON */}
             <div className="flex gap-4">
               <button
                 onClick={handleCancel}
@@ -621,11 +549,8 @@ const Checkout = () => {
             </div>
           </div>
         )}
-
-        {/* STEP 2: PAYMENT */}
         {currentStep === 2 && (
           <div>
-            {/* SHIPPING FORM */}
             <h3 className="text-xl font-semibold mb-4">Shipping Information</h3>
             
             {/* 🆕 LIVE LOCATION BUTTON */}
@@ -732,13 +657,9 @@ const Checkout = () => {
                   aria-required="true"
                 />
               </div>
-              
-              {/* Optional: Hidden fields to keep latitude/longitude in the form object even if they don't have a visible input */}
               <input type="hidden" name="latitude" value={form.latitude || ''} />
               <input type="hidden" name="longitude" value={form.longitude || ''} />
             </div>
-
-            {/* ORDER SUMMARY WITH CUSTOMIZATION */}
             <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
             <div className="space-y-3 mb-4">
               {checkoutItems.map((item) => (
@@ -755,8 +676,6 @@ const Checkout = () => {
                       ₹{(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
-                  
-                  {/* Display selected customizations */}
                   {(item.selectedColor || item.selectedSize || item.selectedRam) && (
                     <div className="text-sm text-gray-600 bg-white p-2 rounded border">
                       <strong>Customization:</strong>{" "}
@@ -770,8 +689,6 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-
-            {/* PAYMENT OPTIONS */}
             <h3 className="text-xl font-semibold mt-6 mb-3">Select Payment Method</h3>
             <div className="space-y-3 border p-4 rounded mb-4">
               <label className="flex items-center gap-3">

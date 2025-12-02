@@ -55,6 +55,24 @@ const ProductCard = ({ product, getProductQuantity, addToCart, updateQuantity, n
         addToCart(product);
     };
 
+    // Check if product has variants with offerPrice
+    const hasVariants = product.variants && product.variants.length > 0;
+    
+    // Get the display price (use variant price if available, otherwise use product price)
+    const displayPrice = hasVariants && product.variants[0].price ? 
+        Number(product.variants[0].price) : 
+        Number(product.price) || 0;
+    
+    // Get offer price if available (from first variant or product offerPrice)
+    const displayOfferPrice = hasVariants && product.variants[0].offerPrice ? 
+        Number(product.variants[0].offerPrice) : 
+        Number(product.offerPrice) || null;
+    
+    // Calculate discount percentage if offerPrice exists
+    const discountPercentage = displayOfferPrice && displayPrice > displayOfferPrice ? 
+        Math.round(((displayPrice - displayOfferPrice) / displayPrice) * 100) : 
+        0;
+
     return (
         <div 
             key={product.id} 
@@ -78,9 +96,9 @@ const ProductCard = ({ product, getProductQuantity, addToCart, updateQuantity, n
                         New
                     </span>
                 )}
-                {product.onSale && (
+                {displayOfferPrice && discountPercentage > 0 && (
                     <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-                        Sale
+                        -{discountPercentage}%
                     </span>
                 )}
             </div>
@@ -90,24 +108,54 @@ const ProductCard = ({ product, getProductQuantity, addToCart, updateQuantity, n
                 <h3 className="font-medium text-gray-900 mb-2 line-clamp-2" title={product.name}>
                     {product.name}
                 </h3>
-                <p className="text-lg font-semibold text-gray-900 mb-3">
-                    ₹ {Number(product.price).toLocaleString()}
-                </p>
                 
-               {/* Category badges */}
-<div className="flex flex-wrap gap-1 mb-3">
-    {product.category && (
-        <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
-            {typeof product.category === 'string' ? product.category : product.category.name}
-        </span>
-    )}
-    {product.subcategory && (
-        <span className="inline-block bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded">
-            {typeof product.subcategory === 'string' ? product.subcategory : product.subcategory.name}
-        </span>
-    )}
-</div>
+                {/* Price Display */}
+                <div className="flex items-center space-x-2 mb-3">
+                    {displayOfferPrice && displayOfferPrice < displayPrice ? (
+                        <>
+                            <p className="text-lg font-semibold text-red-600">
+                                ₹ {displayOfferPrice.toLocaleString()}
+                            </p>
+                            <p className="text-sm text-gray-500 line-through">
+                                ₹ {displayPrice.toLocaleString()}
+                            </p>
+                        </>
+                    ) : (
+                        <p className="text-lg font-semibold text-gray-900">
+                            ₹ {displayPrice.toLocaleString()}
+                        </p>
+                    )}
+                </div>
+                
+                {/* Show variant details if available */}
+                {hasVariants && product.variants[0].size && (
+                    <div className="mb-3">
+                        <span className="inline-block bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded">
+                            Size: {product.variants[0].size}
+                        </span>
+                        {product.variants[0].stock !== undefined && (
+                            <span className={`inline-block ml-2 text-xs px-2 py-1 rounded ${
+                                product.variants[0].stock > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                            }`}>
+                                {product.variants[0].stock > 0 ? `In Stock (${product.variants[0].stock})` : 'Out of Stock'}
+                            </span>
+                        )}
+                    </div>
+                )}
 
+                {/* Category badges */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                    {product.category && (
+                        <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                            {typeof product.category === 'string' ? product.category : product.category.name}
+                        </span>
+                    )}
+                    {product.subcategory && (
+                        <span className="inline-block bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded">
+                            {typeof product.subcategory === 'string' ? product.subcategory : product.subcategory.name}
+                        </span>
+                    )}
+                </div>
 
                 {/* Add to Cart/Quantity Section */}
                 <div className="flex items-center justify-between">
@@ -121,11 +169,14 @@ const ProductCard = ({ product, getProductQuantity, addToCart, updateQuantity, n
                         <button
                             onClick={handleAddToCart}
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                            disabled={hasVariants && product.variants[0].stock <= 0}
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            <span>Add to Cart</span>
+                            <span>
+                                {hasVariants && product.variants[0].stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                            </span>
                         </button>
                     )}
 
@@ -207,52 +258,67 @@ const CartSidebar = ({ isCartOpen, setIsCartOpen, navigate, cartData }) => {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {cartItems.map((item) => (
-                                    <div key={item.id} className="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-gray-900 text-sm truncate">{item.name}</h3>
-                                            <p className="text-blue-600 font-semibold">₹ {(item.price * item.quantity).toLocaleString()}</p>
-                                            <p className="text-xs text-gray-500">
-                                                ({item.quantity} x ₹ {item.price.toLocaleString()})
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
+                                {cartItems.map((item) => {
+                                    // Calculate price to display (use offerPrice if available)
+                                    const displayPrice = item.offerPrice && item.offerPrice < item.price ? 
+                                        item.offerPrice : item.price;
+                                    
+                                    return (
+                                        <div key={item.id} className="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg">
+                                            <img
+                                                src={item.image}
+                                                alt={item.name}
+                                                className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-medium text-gray-900 text-sm truncate">{item.name}</h3>
+                                                <div className="flex items-center space-x-1">
+                                                    <p className="text-blue-600 font-semibold">
+                                                        ₹ {(displayPrice * item.quantity).toLocaleString()}
+                                                    </p>
+                                                    {item.offerPrice && item.offerPrice < item.price && (
+                                                        <p className="text-xs text-gray-500 line-through">
+                                                            ₹ {(item.price * item.quantity).toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-500">
+                                                    ({item.quantity} x ₹ {displayPrice.toLocaleString()})
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                                                    aria-label="Decrease quantity"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                    </svg>
+                                                </button>
+                                                <span className="w-4 text-center text-sm font-medium">{item.quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
+                                                    aria-label="Increase quantity"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                             <button
-                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                                                aria-label="Decrease quantity"
+                                                onClick={() => removeFromCart(item.id)}
+                                                className="p-1 text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
+                                                aria-label="Remove item"
                                             >
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
                                             </button>
-                                            <span className="w-4 text-center text-sm font-medium">{item.quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
-                                                aria-label="Increase quantity"
-                                            >
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => removeFromCart(item.id)}
-                                            className="p-1 text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
-                                            aria-label="Remove item"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -342,6 +408,7 @@ const EMarket = () => {
     /**
      * @function fetchAllProducts
      * Fetches all documents from the 'products' collection in a single call.
+     * Now includes variants data with price and offerPrice
      */
     useEffect(() => {
         const fetchAllProducts = async () => {
@@ -356,7 +423,25 @@ const EMarket = () => {
 
                 querySnapshot.forEach((doc) => {
                     const productData = doc.data();
-                    const price = Number(productData.price) || 0;
+                    
+                    // Get price from variants if available, otherwise use product price
+                    let price = 0;
+                    let offerPrice = null;
+                    
+                    // Check if product has variants array
+                    if (productData.variants && Array.isArray(productData.variants) && productData.variants.length > 0) {
+                        // Use the first variant's price/offerPrice for display
+                        const firstVariant = productData.variants[0];
+                        price = Number(firstVariant.price) || Number(productData.price) || 0;
+                        offerPrice = Number(firstVariant.offerPrice) || Number(productData.offerPrice) || null;
+                    } else {
+                        // No variants, use product-level pricing
+                        price = Number(productData.price) || 0;
+                        offerPrice = Number(productData.offerPrice) || null;
+                    }
+                    
+                    // Use offerPrice for price filtering if it exists and is lower
+                    const priceForFiltering = offerPrice && offerPrice < price ? offerPrice : price;
                     
                     if (productData && productData.name) {
                         fetchedProducts.push({
@@ -364,12 +449,14 @@ const EMarket = () => {
                             // *** The Firestore Document ID (e.g., cOeOc7GHiFYBC7bEHK) is correctly fetched here. ***
                             id: doc.id,
                             price: price,
+                            offerPrice: offerPrice,
+                            variants: productData.variants || [],
                             // FIX: Changed to a working placeholder domain
                             image: productData.image || productData.imageUrl || (Array.isArray(productData.imageUrls) && productData.imageUrls.length > 0 ? productData.imageUrls[0].url : 'https://placehold.co/400x300?text=No+Image')
                         });
 
-                        if (price > maxPrice) {
-                            maxPrice = price;
+                        if (priceForFiltering > maxPrice) {
+                            maxPrice = priceForFiltering;
                         }
                     }
                 });
@@ -423,9 +510,10 @@ const EMarket = () => {
         // 2. Search Filter
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // 3. Price Filter
-        const price = Number(product.price);
-        const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+        // 3. Price Filter - Use offerPrice if available and lower, otherwise use regular price
+        const displayPrice = product.offerPrice && product.offerPrice < product.price ? 
+            product.offerPrice : product.price;
+        const matchesPrice = displayPrice >= priceRange[0] && displayPrice <= priceRange[1];
 
         return matchesCategory && matchesSearch && matchesPrice;
     });

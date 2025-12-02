@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
@@ -27,9 +28,14 @@ import FileDownloads from './Pages/FileDownloads';
 import ProductDetail from './Pages/ProductDetail';
 import Contact from './Pages/Contact';
 import NotFound from './Pages/NotFound';
+import Invoice from './Pages/Invoice';
 
-// ⭐ ADD THIS IMPORT
-import Invoice from "./Pages/Invoice";
+// ✅ Add this import so the footer link /return-policy works
+import ReturnPolicy from './components/ReturnPolicy';
+import ShippingPolicy from './components/ShippingPolicy';
+import TermsConditions from './components/TermsConditions';
+import ChatWithUs from './components/ChatWithUs';
+import FAQs from './components/FAQs';
 
 const App = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -41,7 +47,6 @@ const App = () => {
         setShowLoginModal(true);
         localStorage.setItem('hasVisitedBefore', 'true');
       }, 1000);
-
       return () => clearTimeout(timer);
     }
   }, []);
@@ -57,12 +62,11 @@ const App = () => {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-            {/* USER ROUTES */}
+            {/* USER ROUTES (shell with Navbar/Footer) */}
             <Route
               path="/*"
               element={
                 <div className="min-h-screen bg-white flex flex-col">
-
                   <Navbar />
                   <CartNotification />
                   <LoginModal isOpen={showLoginModal} onClose={handleCloseModal} />
@@ -91,9 +95,17 @@ const App = () => {
                       {/* PRODUCT PAGE */}
                       <Route path="/product/:productId" element={<ProductDetail />} />
 
-                      {/* ⭐ ADD INVOICE PAGE ROUTE */}
+                      {/* INVOICE PAGE */}
                       <Route path="/invoice" element={<Invoice />} />
 
+                      {/* ✅ RETURN POLICY PAGE */}
+                      <Route path="/return-policy" element={<ReturnPolicy />} />
+                      <Route path="/shipping-policy" element={<ShippingPolicy/>} />
+                      <Route path="/terms-conditions" element={<TermsConditions/>} />
+                      <Route path="/chat-with-us" element={<ChatWithUs/>} />
+                      <Route path="/faqs" element={<FAQs/>} />
+
+                      {/* 404 */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>

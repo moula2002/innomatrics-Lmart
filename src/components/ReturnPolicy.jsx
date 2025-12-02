@@ -2,7 +2,7 @@ import React from 'react';
 
 function ReturnPolicy() {
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 min-h-screen"> {/* Added min-h-screen to ensure background coverage */}
+    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 min-h-screen"> 
       <div className="max-w-4xl mx-auto">
         
         <header className="text-center mb-10">
@@ -22,7 +22,7 @@ function ReturnPolicy() {
               1. General Return Conditions
             </h2>
             <p className="text-gray-700 mb-4">
-              We accept returns for items within **30 days** of the original purchase date. To be eligible for a return, your item must be **unused** and in the same condition that you received it. It must also be in the original packaging.
+              We accept returns for items within 30 days of the original purchase date. To be eligible for a return, your item must be unused and in the same condition that you received it. It must also be in the original packaging.
             </p>
             <p className="text-gray-700">
               <span className="font-semibold text-red-600">Note:</span> Custom-printed or personalized items are generally non-refundable unless they arrive damaged or with a material defect.
@@ -49,13 +49,13 @@ function ReturnPolicy() {
             </h2>
             <ol className="list-decimal list-inside space-y-3 text-gray-700">
               <li>
-                **Contact Us:** Email us at <a href="mailto:returns@lmart.com" className="text-indigo-600 hover:text-indigo-800 font-medium">returns@lmart.com</a> with your **Order Number** and the reason for the return.
+                Contact Us: Email us at <a href="mailto:returns@lmart.com" className="text-indigo-600 hover:text-indigo-800 font-medium">returns@lmart.com</a> with your Order Number and the reason for the return.
               </li>
               <li>
-                **Receive Authorization:** Wait for our team to issue a Return Merchandise Authorization (RMA) number and provide a shipping label (if applicable).
+                Receive Authorization: Wait for our team to issue a Return Merchandise Authorization (RMA) number and provide a shipping label (if applicable).
               </li>
               <li>
-                **Package and Ship:** Ship the item back to the address provided with the RMA number clearly marked on the outside of the package.
+                Package and Ship: Ship the item back to the address provided with the RMA number clearly marked on the outside of the package.
               </li>
             </ol>
             <p className="mt-4 text-sm text-gray-500 italic">
@@ -70,7 +70,7 @@ function ReturnPolicy() {
             </h2>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Refunds</h3>
             <p className="text-gray-700 mb-4">
-              Once your return is received and inspected, we will notify you of the approval or rejection of your refund. If approved, your refund will be processed, and a credit will automatically be applied to your original method of payment within **7-10 business days**.
+              Once your return is received and inspected, we will notify you of the approval or rejection of your refund. If approved, your refund will be processed, and a credit will automatically be applied to your original method of payment within 7-10 business days.
             </p>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Exchanges</h3>
             <p className="text-gray-700">

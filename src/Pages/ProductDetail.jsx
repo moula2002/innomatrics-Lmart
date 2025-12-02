@@ -467,6 +467,11 @@ const ProductDetail = () => {
           setFullImageList(imageList);
           setColorImagesMap(colorImageMapping);
 
+          // Set initial main image if not already set
+          if (!currentMainImage && imageList.length > 0) {
+            setCurrentMainImage(imageList[0]);
+          }
+
           // Fetch reviews
           fetchReviews();
         } else {
@@ -749,9 +754,9 @@ const ProductDetail = () => {
             <div className="space-y-4">
               <div className="bg-gray-100 rounded-xl overflow-hidden">
                 <img
-                  src={currentMainImage || 'https://via.placeholder.com/400x300?text=Image+Loading+Error'}
+                  src={currentMainImage || product.mainImageUrl || 'https://via.placeholder.com/400x300?text=Image+Loading+Error'}
                   alt={product.name}
-                  className="w-full h-80 object-cover"
+                  className="w-full h-auto max-h-[500px] object-contain"
                 />
               </div>
 
@@ -769,15 +774,13 @@ const ProductDetail = () => {
                       <img
                         src={image}
                         alt={`${product.name} ${index + 1}`}
-                        className="w-full h-16 object-cover"
+                        className="w-full h-20 object-cover"
                       />
                     </button>
                   ))}
                 </div>
               )}
             </div>
-
-            {/* Product Details (Right Side) */}
             <div className="space-y-6">
               {/* Product Header */}
               <div>
@@ -808,11 +811,6 @@ const ProductDetail = () => {
                   }`}>
                   {isVariantInStock ? 'In Stock' : 'Out of Stock'}
                 </div>
-                
-                {/* --- START: REMOVED Product Description Section --- */}
-                {/* <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p> */}
-                {/* --- END: REMOVED Product Description Section --- */}
-
 
                 {/* Color Selection Section */}
                 {product.colors && product.colors.length > 0 && (
